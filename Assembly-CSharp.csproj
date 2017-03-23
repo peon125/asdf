@@ -48,6 +48,7 @@
   <ItemGroup>
      <Compile Include="Assets\scripts\Background.cs" />
      <Compile Include="Assets\scripts\GameSet.cs" />
+     <Compile Include="Assets\scripts\MaxValueOnTilesSlider.cs" />
      <Compile Include="Assets\scripts\Menu01Control.cs" />
      <Compile Include="Assets\scripts\Menu02Control.cs" />
      <Compile Include="Assets\scripts\PauseMenu.cs" />

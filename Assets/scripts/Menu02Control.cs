@@ -53,4 +53,19 @@ public class Menu02Control : MonoBehaviour
 
         gameSet.timeMode = timeModeCounter;
     }
+
+    public void SetOperates(string operations)
+    {
+        gameSet.operations = operations;
+
+        if (GameObject.Find("border"))
+        {
+            Destroy(GameObject.Find("border"));
+        }
+
+        GameObject go = GameObject.Find(operations);
+
+        GameObject border = Instantiate(borderPrefab, go.transform.position, go.transform.rotation, go.transform);
+        border.name = "border";
+    }
 }
