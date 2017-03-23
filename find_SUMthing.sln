@@ -1,0 +1,23 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2008
+
+Project("{EBC8EBFD-8CF1-6EF4-4719-EFE49A4CA5F9}") = "find_SUMthing", "Assembly-CSharp.csproj", "{3E100331-DB5B-40CE-D466-AE8422455ADE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3E100331-DB5B-40CE-D466-AE8422455ADE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E100331-DB5B-40CE-D466-AE8422455ADE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E100331-DB5B-40CE-D466-AE8422455ADE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E100331-DB5B-40CE-D466-AE8422455ADE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Assembly-CSharp.csproj
+	EndGlobalSection
+EndGlobal
