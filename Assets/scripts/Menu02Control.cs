@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Menu02Control : MonoBehaviour 
 {
@@ -67,5 +68,10 @@ public class Menu02Control : MonoBehaviour
 
         GameObject border = Instantiate(borderPrefab, go.transform.position, go.transform.rotation, go.transform);
         border.name = "border";
+    }
+
+    public void PlayTheGame()
+    {
+        SceneManager.LoadScene("game");
     }
 }
