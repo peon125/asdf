@@ -9,50 +9,51 @@ public class Menu02Control : MonoBehaviour
     public GameObject borderPrefab;
     public GameSet gameSet;
     public Image gameModeImage, timeModeImage;
-    int gameModeCounter, timeModeCounter;
+    int gameModeCounter;
+
+    void Start()
+    {
+        gameSet.gameMode = 0;
+        gameSet.timeIsRunningOut = true;
+        gameSet.operations = "";
+    }
 
     public void ChangeGameMode()
     {
-        gameModeCounter++;
-        gameModeCounter %= 3;
+        gameSet.gameMode++;
+        gameSet.gameMode %= 3;
 
-        switch (gameModeCounter)
+        switch (gameSet.gameMode)
         {
             case 0:
                 gameModeImage.color = new Color(1, 1, 0);
-                gameModeImage.transform.GetChild(0).GetComponent<Text>().text = "turn to zeros";
+                gameModeImage.transform.GetChild(0).GetComponent<Text>().text = "delete tiles";
                 break;
             case 1:
                 gameModeImage.color = new Color(1, 0, 1);
-                gameModeImage.transform.GetChild(0).GetComponent<Text>().text = "delete tiles";
+                gameModeImage.transform.GetChild(0).GetComponent<Text>().text = "turn to zeros";
                 break;
             case 2:
                 gameModeImage.color = new Color(0, 1, 1);
-                gameModeImage.transform.GetChild(0).GetComponent<Text>().text = "infinite mode";
+                gameModeImage.transform.GetChild(0).GetComponent<Text>().text = "infinity mode";
                 break;
         }
-
-        gameSet.gameMode = gameModeCounter;
     }
 
     public void ChangeTimeMode()
     {
-        timeModeCounter++;
-        timeModeCounter %= 2;
+        gameSet.timeIsRunningOut = !gameSet.timeIsRunningOut;
 
-        switch(timeModeCounter)
+        if (gameSet.timeIsRunningOut)
         {
-            case 0:
-                timeModeImage.color = Color.green;
-                timeModeImage.transform.GetChild(0).GetComponent<Text>().text = "time passes";
-                break;
-            case 1:
-                timeModeImage.color = Color.red;
-                timeModeImage.transform.GetChild(0).GetComponent<Text>().text = "time doesn't pass";
-                break;
+            timeModeImage.color = Color.green;
+            timeModeImage.transform.GetChild(0).GetComponent<Text>().text = "time's passing";
         }
-
-        gameSet.timeMode = timeModeCounter;
+        else
+        {
+            timeModeImage.color = Color.red;
+            timeModeImage.transform.GetChild(0).GetComponent<Text>().text = "time isn't passing";       
+        }
     }
 
     public void SetOperates(string operations)

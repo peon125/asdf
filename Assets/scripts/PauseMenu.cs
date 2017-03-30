@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Linq;
+using System;
 
 public class PauseMenu : MonoBehaviour 
 {
@@ -14,18 +16,27 @@ public class PauseMenu : MonoBehaviour
 	void Start() 
     {
         GameObject[] gos = GameObject.FindGameObjectsWithTag("NotToDestroy");
-        
-        foreach (GameObject go in gos)
+        if (gos.Length == 0)
         {
-            if (go.name == gameObject.name)
+            tag = "NotToDestroy";
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            int i = 0;
+            do
             {
-                Destroy(gameObject);
-            }
-            else
-            {
-                tag = "NotToDestroy";
-                DontDestroyOnLoad(gameObject);
-            }
+                if (gos[i].name == gameObject.name)
+                {
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    tag = "NotToDestroy";
+                    DontDestroyOnLoad(gameObject);
+                }
+                i++;
+            } while(i < gos.Length);
         }
 
         colorCounter = 0;

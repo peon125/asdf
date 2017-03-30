@@ -6,17 +6,18 @@ using System.Linq;
 
 public class GameControl : MonoBehaviour 
 {
-    public GameObject tilePrefab, borderPrefab;
+    public GameObject tilePrefab, borderPrefab, endingBoard;
 	public Transform tilesArea;
-    public Text equation, counter;
+    public Text equationText, counterText, findText;
     public Image timeBar;
     public float time;
     Color[] colors;
     List<GameObject> selectedTiles, allTiles;
     GameSet gameSet;
+    string sign, equation;
     int[] posX, posY;
-    int wantedValue;
-    float _time;
+    int wantedValue, points;
+    float _time, timeSinceSceneStarted;
 
 	void Start() 
     {
@@ -24,23 +25,46 @@ public class GameControl : MonoBehaviour
         selectedTiles = new List<GameObject>();
         allTiles = new List<GameObject>();
         _time = time;
+        points = 0;
+        timeSinceSceneStarted = 0;
+        sign = "";
+        equation = "";
 
         SetColorsTable(out colors);
 		SetValuesInArraysContainingCords();
 		SpawnTiles();
         DrawnANumber();
+
+        if (gameSet.operations == "add")
+        {
+            findText.text = "Find sum:";
+            sign = " + ";
+        }
+        else if (gameSet.operations == "sub")
+        {
+            findText.text = "Find product:";
+            sign = " - ";
+        }
+
+        if (!gameSet.timeIsRunningOut)
+        {
+            timeBar.gameObject.SetActive(false);
+        }
 	}
 
-    void FixedUpdate()
+    void Update()
     {
-        timeBar.transform.localScale = new Vector3(_time / time, 1, 1);
-        _time -= Time.deltaTime;
-        counter.text = _time.ToString();
-        counter.text = counter.text.Substring(0, counter.text.IndexOf(".") + 2);
+        timeSinceSceneStarted += Time.deltaTime;
 
-        if(_time <= 0)
+        if (gameSet.timeIsRunningOut)
         {
-            _time = time;
+            timeBar.transform.localScale = new Vector3(_time / time, 1, 1);
+            _time -= Time.deltaTime;
+        }
+
+        if ((_time <= 0 && gameSet.timeIsRunningOut) || allTiles.Count == 0)
+        {
+            EndGame();
         }
     }
 
@@ -67,17 +91,26 @@ public class GameControl : MonoBehaviour
 		{
 			for (int y = 0; y < posY.Length; y++)
 			{
+                Vector2 pos = new Vector2(posX[x], posY[y]);
                 int r = Random.Range(1, gameSet.maxValueOnTiles);
-				Vector2 pos = new Vector2(posX[x], posY[y]);
-                GameObject tile = Instantiate(tilePrefab, Vector2.zero, new Quaternion(0, 0, 0, 0), tilesArea);
-                tile.GetComponent<RectTransform>().localPosition = pos;
-				tile.transform.GetChild(0).GetComponent<Text>().text = r.ToString();
-				tile.GetComponent<Tile>().value = r;
-                tile.transform.GetChild(0).GetComponent<Text>().color = colors[r];
-                allTiles.Add(tile);
+                SpawnASingleTile(pos, r, true);
 			}
 		}
 	}
+
+    void SpawnASingleTile(Vector2 pos, int value, bool addToTheList)
+    {
+        GameObject tile = Instantiate(tilePrefab, Vector2.zero, new Quaternion(0, 0, 0, 0), tilesArea) as GameObject;
+        tile.GetComponent<RectTransform>().localPosition = pos;
+        tile.transform.GetChild(0).GetComponent<Text>().text = value.ToString();
+        tile.GetComponent<Tile>().value = value;
+        tile.transform.GetChild(0).GetComponent<Text>().color = colors[value];
+
+        if(addToTheList)
+        {
+            allTiles.Add(tile);
+        }
+    }
 
     public void TileTouched(GameObject tile)
     {
@@ -93,26 +126,22 @@ public class GameControl : MonoBehaviour
             Destroy(tile.transform.GetChild(1).gameObject);
         }
 
-        CheckIfTilesGiveWantedValue();
+        if (allTiles.Count > 0)
+        {
+            CheckIfTilesGiveWantedValue();
+        }
     }
 
     void DrawnANumber()
     {
+        int minuend = 0;
         wantedValue = 0;
 
-        int howManyTiles = 0;
+        int howManyTiles = 2;
 
-        switch (allTiles.Count)
+        if(allTiles.Count == 3)
         {
-            case 2:
-                howManyTiles = 2;
-                break;
-            case 3:
-                howManyTiles = 3;
-                break;
-            default:
-                howManyTiles = Random.Range(2, 4);
-                break;
+            howManyTiles = 3;
         }
 
         Tile[] drawnTiles = new Tile[howManyTiles];
@@ -133,25 +162,53 @@ public class GameControl : MonoBehaviour
             wantedValue += tile.value;
         }
 
-        equation.text = wantedValue + " = ";
+        if (gameSet.operations == "sub")
+        {
+            minuend = Random.Range(gameSet.maxValueOnTiles, gameSet.maxValueOnTiles * 2 - 1);
+            equation = (minuend - wantedValue) + " = " + minuend + " - ";
+        }
+
+        if (gameSet.operations == "add")
+        {
+            equation = wantedValue + " = ";
+        }
+
+        equationText.text = equation;
     }
 
     void CheckIfTilesGiveWantedValue()
     {
         int summary = 0;
 
-        equation.text = wantedValue + " = ";
+        string text = "";
 
         foreach(GameObject tile in selectedTiles)
         {
             summary += tile.GetComponent<Tile>().value;
-            equation.text += tile.GetComponent<Tile>().value + " + ";
+            text += tile.GetComponent<Tile>().value + sign;
         }
 
-        if(summary == wantedValue)
+        equationText.text = equation + text;
+
+        if(summary == wantedValue && selectedTiles.Count >= 2)
         {
+            switch (gameSet.gameMode)
+            {
+                case 1:
+                    SpawnAZeroTile();
+                    break;
+                case 2:
+                    ChangeATile();
+                    break;
+            }
+
+            GivePoints();
             ResetSelectedTiles();
-            DrawnANumber();
+
+            if (allTiles.Count > 0)
+            {
+                DrawnANumber();
+            }
         }
     }
 
@@ -173,13 +230,118 @@ public class GameControl : MonoBehaviour
     void SetColorsTable(out Color[] colors)
     {
         colors = new Color[gameSet.maxValueOnTiles];
+        colors[0] = Color.white;
 
-        for (int i = 0; i < colors.Length; i++)
+        float f = 360 / gameSet.maxValueOnTiles;
+        f /= 60;
+        float limit = 1f;
+        int i = 1;
+
+        for (int o = 0; i < colors.Length; o++)
         {
-            float r = Random.Range(0.4f, 1f);
-            float g = Random.Range(0.4f, 1f);
-            float b = Random.Range(0.4f, 1f);
-            colors[i] = new Color(r, g, b);
+            if (f * o > limit)
+            {
+                break;
+            }
+            colors[i] = new Color(limit, f * o, 0f);
+            i++;
         }
+
+        for (int o = 0; i < colors.Length; o++)
+        {
+            if (f * o > limit)
+            {
+                break;
+            }
+            colors[i] = new Color(limit - f * o, limit, 0f);
+            i++;
+        }
+
+        for (int o = 0; i < colors.Length; o++)
+        {
+            if (f * o > limit)
+            {
+                break;
+            }
+            colors[i] = new Color(0f, limit, f * o);
+            i++;
+        }
+
+        for (int o = 0; i < colors.Length; o++)
+        {
+            if (f * o > limit)
+            {
+                break;
+            }
+            colors[i] = new Color(0f, limit - f * o, limit);
+            i++;
+        }
+
+        for (int o = 0; i < colors.Length; o++)
+        {
+            if (f * o > limit)
+            {
+                break;
+            }
+            colors[i] = new Color(f * o, 0f, limit);
+            i++;
+        }
+
+        for (int o = 0; i < colors.Length; o++)
+        {
+            if (f * o > limit)
+            {
+                break;
+            }
+            colors[i] = new Color(limit, 0f, limit - f * o);
+            i++;
+        }
+    }
+
+    void SpawnAZeroTile()
+    {
+        foreach (GameObject tile in selectedTiles)
+        {
+            Vector2 pos = tile.GetComponent<RectTransform>().localPosition;
+            SpawnASingleTile(pos, 0, false);
+        }
+    }
+
+    void ChangeATile()
+    {
+        foreach (GameObject tile in selectedTiles)
+        {
+            Vector2 pos = tile.GetComponent<RectTransform>().localPosition;
+            int r = Random.Range(1, gameSet.maxValueOnTiles);
+            SpawnASingleTile(pos, r, true);
+        }
+    }
+
+    void GivePoints()
+    {
+        int howManyTilesWorthPoints = 0;
+
+        foreach(GameObject tile in selectedTiles)
+        {
+            if (tile.GetComponent<Tile>().value != 0)
+            {
+                howManyTilesWorthPoints++;
+            }
+        }
+
+        points += (int)Mathf.Pow(howManyTilesWorthPoints, 2);
+
+        counterText.text = points.ToString();
+    }
+
+    void EndGame()
+    {
+        Time.timeScale = 0;
+        endingBoard.SetActive(true);
+    }
+
+    public float GetTime()
+    {
+        return timeSinceSceneStarted;
     }
 }
